@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕋</text></svg>">
+<title>Parvez</title>
+<style>
+*{box-sizing:border-box;margin:0;font-family:system-ui}
+body{background:#0b1020;color:#eaf0ff;min-height:100vh;padding:16px}
+.c{text-align:center}.hide{display:none}
+h1{font-size:28px;margin:8px 0}h2{font-size:20px;margin:12px 0}
+.icon{font-size:90px}
+button{background:#1c2b5a;color:#fff;border:1px solid #3b5bff;border-radius:14px;padding:14px 18px;font-size:17px;margin:6px;cursor:pointer}
+button:active{background:#2a3f85}
+input{width:100%;padding:13px;border-radius:12px;border:1px solid #3b5bff;background:#131c38;color:#fff;font-size:16px;margin:6px 0}
+.mic{font-size:34px;width:96px;height:96px;border-radius:50%;background:#123f22;border:2px solid #2eff7b}
+.card{background:#131c38;border:1px solid #2a3a6e;border-radius:14px;padding:14px;margin:10px 0}
+.row{display:flex;flex-wrap:wrap;justify-content:center}
+#out{background:#0e1530;border-radius:12px;padding:12px;min-height:70px;margin:10px 0;font-size:16px;line-height:1.6}
+#guardOverlay{position:fixed;inset:0;background:rgba(180,0,0,.92);display:flex;align-items:center;justify-content:center;z-index:99}
+#guardOverlay div{font-size:26px;font-weight:700;text-align:center;padding:20px}
+video{width:100%;border-radius:12px}
+.foot{text-align:center;color:#8fa0c8;font-size:13px;margin-top:18px}
+</style>
+</head>
+<body>
+
+<!-- LOCK -->
+<div id="lock" class="c">
+<div class="icon">🕋</div>
+<h1>Parvez</h1>
+<p>Khulte <b>"Mokka Sharif"</b> bolo,<br>ba PIN dao</p>
+<p><button id="vUnlock">🎤 Kotha bolo</button></p>
+<input id="pin" type="password" inputmode="numeric" placeholder="PIN (1234)" style="max-width:220px">
+<p><button id="pinBtn">🔓 Kholo</button></p>
+<p id="lockMsg"></p>
+</div>
+
+<!-- APP -->
+<div id="app" class="hide">
+<div class="c"><span style="font-size:44px">🕋</span><h1>Parvez</h1></div>
+<div class="c"><button class="mic" id="micBtn">🎤</button></div>
+<input id="cmd" placeholder="Lekho ba mukhe bolo... (jemon: youtube kholo)">
+<div class="c"><button id="sendBtn">▶️ Chalao</button></div>
+<div id="out">Salaam Mehebub! Ki korte chao bolo.</div>
+<div class="row">
+<button data-go="contacts">📞 Number</button>
+<button data-go="guard">🛡️ Guard</button>
+<button data-go="quran">📖 Quran</button>
+<button data-go="tips">💡 Tips</button>
+</div>
+
+<div id="sec-contacts" class="hide card">
+<h2>📞 Gopon Number</h2>
+<input id="cname" placeholder="Nam">
+<input id="cnum" placeholder="Mobile number" inputmode="tel">
+<button id="addC">➕ Jog koro</button>
+<div id="clist"></div>
+<p style="font-size:13px;color:#8fa0c8">Number lukano thake. Name chap dile dekhabe o call kora jabe.</p>
+</div>
+
+<div id="sec-guard" class="hide card">
+<h2>🛡️ Guard Mode</h2>
+<button id="gStart">📷 Guard chalu koro</button>
+<button id="gShot" class="hide">📸 Chobi tolo</button>
+<button id="gStop" class="hide">⏹️ Bondho koro</button>
+<p><video id="gv" autoplay playsinline class="hide"></video></p>
+<canvas id="gc" class="hide"></canvas>
+</div>
+
+<div id="sec-quran" class="hide card">
+<h2>📖 Quran (Bangla)</h2>
+<div id="qlist"></div>
+</div>
+
+<div id="sec-tips" class="hide card">
+<h2>💡 Mobile Tips</h2>
+<p>🔋 <b>Charge taratari sesh?</b> → Brightness komao, background app bondho koro.</p>
+<p>📶 <b>Net slow?</b> → Flight mode 10 second on kore off koro.</p>
+<p>📱 <b>Phone gorom?</b> → Case khule thanda jaygay rakho, game bondho rakho.</p>
+<p>🗑️ <b>Storage full?</b> → WhatsApp er purono video delete koro.</p>
+<p>🔒 <b>Nirapod thako:</b> Ochena link e chap dio na, OTP kauke dio na.</p>
+</div>
+
+<p class="foot">Sudhu Mehebub er jonno banano ❤️</p>
+</div>
+
+<div id="guardOverlay" class="hide"><div>⛔ SABDHAN!<br>Onodhikar probesher chesta!<br><button id="gOff2">✅ Ami Mehebub - bondho koro</button></div></div>
+
+<script>
+function bol(t){try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang='bn-IN';speechSynthesis.speak(u)}catch(e){}}
+function rec(cb){var R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R){alert('Ei browser e voice hobe na, likhe dao');return}var r=new R();r.lang='bn-IN';r.onresult=function(e){cb(e.results[0][0].transcript)};r.onerror=function(){alert('Sona jayni, abar bolo')};r.start()}
+function unlock(){document.getElementById('lock').classList.add('hide');document.getElementById('app').classList.remove('hide');bol('Salaam Mehebub! Parvez hajir. Ki korte chao bolo.')}
+document.getElementById('vUnlock').onclick=function(){rec(function(t){var s=t.toLowerCase();if(s.indexOf('mokka')>-1||s.indexOf('makka')>-1||s.indexOf('sharif')>-1){unlock()}else{document.getElementById('lockMsg').textContent='Bhul shona geche: "'+t+'". Abar bolo.';bol('Bhul hoyeche, abar bolo')}})};
+document.getElementById('pinBtn').onclick=function(){if(document.getElementById('pin').value==='1234'){unlock()}else{document.getElementById('lockMsg').textContent='Bhul PIN!';bol('Bhul PIN')}};
+
+document.getElementById('micBtn').onclick=function(){rec(function(t){document.getElementById('cmd').value=t;chalao(t)})};
+document.getElementById('sendBtn').onclick=function(){chalao(document.getElementById('cmd').value)};
+function out(t){document.getElementById('out').innerHTML=t}
+function getC(){try{return JSON.parse(localStorage.getItem('pc')||'[]')}catch(e){return[]}}
+function setC(c){localStorage.setItem('pc',JSON.stringify(c))}
+
+function chalao(raw){
+var t=(raw||'').toLowerCase().trim();if(!t)return;
+if(t.indexOf('youtube')>-1){out('📺 YouTube khulchi...');bol('YouTube khulchi');location.href='https://m.youtube.com';return}
+if(t.indexOf('facebook')>-1||t.indexOf('fb')>-1){out('📘 Facebook khulchi...');bol('Facebook khulchi');location.href='https://m.facebook.com';return}
+if(t.indexOf('whatsapp')>-1){out('💬 WhatsApp khulchi...');location.href='https://wa.me/';return}
+if(t.indexOf('quran')>-1||t.indexOf('sura')>-1){show('quran');out('📖 Quran section khullam');bol('Quran khullam');return}
+if(t.indexOf('guard')>-1){show('guard');out('🛡️ Guard section khullam');return}
+if(t.indexOf('number')>-1||t.indexOf('contact')>-1){show('contacts');out('📞 Number vault khullam');return}
+if(t.indexOf('tips')>-1||t.indexOf('sahajjo')>-1||t.indexOf('madad')>-1){show('tips');out('💡 Tips khullam');return}
+var cs=getC();
+for(var i=0;i<cs.length;i++){if(t.indexOf(cs[i].n.toLowerCase())>-1&&(t.indexOf('call')>-1||t.indexOf('phone')>-1||t.indexOf('lagao')>-1)){out('📞 '+cs[i].n+' ke call lagacchi...');bol(cs[i].n+' ke call lagacchi');location.href='tel:'+cs[i].p;return}}
+out('🔎 Google e khujchi: '+raw);bol('Google e khujchi');location.href='https://www.google.com/search?q='+encodeURIComponent(raw);
+}
+
+var secs=['contacts','guard','quran','tips'];
+function show(s){secs.forEach(function(x){document.getElementById('sec-'+x).classList.toggle('hide',x!==s)})}
+document.querySelectorAll('[data-go]').forEach(function(b){b.onclick=function(){show(b.getAttribute('data-go'))}});
+
+document.getElementById('addC').onclick=function(){
+var n=document.getElementById('cname').value.trim(),p=document.getElementById('cnum').value.trim();
+if(!n||!p){alert('Nam o number dao');return}
+var c=getC();c.push({n:n,p:p});setC(c);
+document.getElementById('cname').value='';document.getElementById('cnum').value='';
+renderC();bol('Number jog hoye geche')};
+function mask(p){return p.length<=2?'**':p.slice(0,2)+'******'+p.slice(-2)}
+function renderC(){var c=getC(),h='';for(var i=0;i<c.length;i++){h+='<div class="card"><b>'+c[i].n+'</b> - '+mask(c[i].p)+' <button onclick="revC('+i+')">👁️ Dekho</button></div>'}document.getElementById('clist').innerHTML=h||'<p>Ekono number nei</p>'}
+window.revC=function(i){var c=getC()[i];document.getElementById('clist').children[i].innerHTML='<b>'+c.n+'</b> - '+c.p+' <a href="tel:'+c.p+'"><button>📞 Call</button></a>'};
+renderC();
+
+var stream=null;
+document.getElementById('gStart').onclick=function(){
+navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}}).then(function(s){stream=s;var v=document.getElementById('gv');v.srcObject=s;v.classList.remove('hide');document.getElementById('gShot').classList.remove('hide');document.getElementById('gStop').classList.remove('hide');document.getElementById('guardOverlay').classList.remove('hide');bol('Guard chalu. Sabdhan!')}).catch(function(){alert('Camera khulche na')})};
+document.getElementById('gShot').onclick=function(){var v=document.getElementById('gv'),c=document.getElementById('gc');c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0);var a=document.createElement('a');a.download='guard.png';a.href=c.toDataURL();a.click();bol('Chobi tola hoye geche')};
+function gStop(){if(stream){stream.getTracks().forEach(function(t){t.stop()})}document.getElementById('guardOverlay').classList.add('hide');document.getElementById('gv').classList.add('hide');document.getElementById('gShot').classList.add('hide');document.getElementById('gStop').classList.add('hide');bol('Guard bondho')}
+document.getElementById('gStop').onclick=gStop;document.getElementById('gOff2').onclick=gStop;
+
+var Q=[
+{n:'Sura Fatiha',m:'Somoshto proshongsha Allahor, jini jogoter palonkorta. Oti doyamoy, oti doyalu. Bichar diner malik.'},
+{n:'Sura Ikhlas',m:'Bolo, Allah ek. Allah karo mukhapekkhi non. Tini kauke jonmo denni, karo theke jonmou nen ni. Tar soman keu nei.'},
+{n:'Sura Falaq',m:'Bolo, ami vorer palonkortar kache ashroy chai, tar srishtir khoti theke, ondhokar rater khoti theke, ar hingshuker hingsha theke.'},
+{n:'Sura Nas',m:'Bolo, ami manusher palonkortar kache ashroy chai, manusher badshar kache, manusher ilaher kache, kumontronakari soytaner theke.'},
+{n:'Sura Kawthar',m:'Ami tomake Kawthar dan korechi. Tai tomar raber jonno namaz poro o korbani dao. Tomar shotrui nirbongsho.'}];
+var qh='';Q.forEach(function(s,i){qh+='<div class="card"><b>'+s.n+'</b><p>'+s.m+'</p><button onclick="qbol('+i+')">🔊 Suno</button></div>'});
+document.getElementById('qlist').innerHTML=qh;
+window.qbol=function(i){bol(Q[i].n+'. '+Q[i].m)};
+</script>
+</body>
+</html>
