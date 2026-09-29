@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="bn"><head><style>
+<!DOCTYPE html>
+<html lang="en"><head><style>
 @font-face {
   font-family: "Optimistic";
   font-style: normal;
@@ -28,22 +29,31 @@ body{background:#0a1628;color:#fff;font-family:sans-serif;margin:0;display:flex;
 #bar{display:flex;padding:10px;background:#020617}#inp{flex:1;padding:12px;border-radius:10px;border:none;outline:none}
 #send{background:#f59e0b;border:none;padding:0 20px;border-radius:10px;font-weight:bold;margin-left:8px;cursor:pointer}
 </style></head><body>
-<div id="chat"><div class="msg ai">Salam! Ami Parvez AI. Tomar hukum er opekkhay achi.</div></div>
-<div id="bar"><input id="inp" placeholder="Likho ekhane..."><button id="send">Send</button></div>
+<div id="chat"><div class="msg ai">Assalamualaikum! I am Parvez AI. Waiting for your command.</div></div>
+<div id="bar"><input id="inp" placeholder="Type here..."><button id="send">Send</button></div>
 <script>
 const API_KEY = "AQ.Ab8RN6JeybUXFhklZjGN0ZRKgpu4wVtOPmX-rwRE4hTErd-Mqw";
+const MODELS = ["gemini-2.0-flash","gemini-1.5-flash","gemini-flash-latest"];
+const SYSTEM = "You are Parvez AI. Reply in the same language the user uses. If the user writes in Bengali (Bangla), reply in Bengali. If the user writes in English, reply in English. Keep replies natural and helpful.";
 const chat=document.getElementById('chat'),inp=document.getElementById('inp');
+async function tryModel(model,prompt){
+ const url=`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+ const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','X-goog-api-key':API_KEY},body:JSON.stringify({system_instruction:{parts:[{text:SYSTEM}]},contents:[{parts:[{text:prompt}]}]})});
+ const j=await r.json();
+ if(j.error) throw new Error(j.error.code+': '+j.error.message);
+ const txt=j.candidates?.[0]?.content?.parts?.[0]?.text;
+ if(!txt) throw new Error('empty');
+ return txt;
+}
 async function send(){
  const t=inp.value.trim();if(!t)return;
  const um=document.createElement('div');um.className='msg user';um.textContent=t;chat.appendChild(um);inp.value='';
- const d=document.createElement('div');d.className='msg ai';d.textContent='Likchi...';chat.appendChild(d);chat.scrollTop=chat.scrollHeight;
- const url='https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent';
- try{
-  const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','X-goog-api-key':API_KEY},body:JSON.stringify({contents:[{parts:[{text:t}]}]})});
-  const j=await r.json();
-  if(j.error){d.textContent='API Error '+j.error.code+': '+j.error.message;return;}
-  d.textContent=j.candidates?.[0]?.content?.parts?.[0]?.text||'Empty response. Full: '+JSON.stringify(j).substring(0,400);
- }catch(e){d.textContent='Fetch Error: '+e.message;}
+ const d=document.createElement('div');d.className='msg ai';d.textContent='Typing...';chat.appendChild(d);chat.scrollTop=chat.scrollHeight;
+ for(let m of MODELS){
+  try{ d.textContent='Typing... ('+m+')'; const ans=await tryModel(m,t); d.textContent=ans; chat.scrollTop=chat.scrollHeight; return; }
+  catch(e){ console.log(m+' failed: '+e.message); }
+ }
+ d.textContent='Sorry, all models are busy right now. Please try again in 1 minute.';
  chat.scrollTop=chat.scrollHeight;
 }
 document.getElementById('send').onclick=send;inp.onkeydown=e=>{if(e.key==='Enter')send()};
